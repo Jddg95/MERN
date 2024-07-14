@@ -1,25 +1,11 @@
 const { User, Book } = require("../models");
-const { AuthenticationError } = require("apollo-server-express");
-const { signToken } = require("../utils/auth");
+const { signToken, AuthenticationError } = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    users: async () => {
-      return User.find().populate("books");
-    },
-    user: async (parent, { username }) => {
-      return User.findOne({ username }).populate("books");
-    },
-    books: async (parent, { username }) => {
-      const params = username ? { username } : {};
-      return Book.find(params).sort({ createdAt: -1 });
-    },
-    book: async (parent, { bookId }) => {
-      return Book.findOne({ _id: bookId });
-    },
     me: async (parent, args, context) => {
       if (context.user) {
-        return User.findOne({ _id: context.user._id }).populate("books");
+        return User.findOne({ _id: context.user._id });
       }
       throw new AuthenticationError("You need to be logged in");
     },
@@ -48,19 +34,15 @@ const resolvers = {
 
       return { token, user };
     },
-    addBook: async (parent, args, context) => {
+    saveBook: async (parent, { bookData }, context) => {
       if (context.user) {
-        const book = await Book.create({
-          ...args,
-          username: context.user.username,
-        });
-
-        await User.findByIdAndUpdate(
-          { _id: context.user._id },
-          { $addToSet: { books: book._id } }
+        const user = await User.findByIdAndUpdate(
+           context.user._id ,
+          { $addToSet: { savedBooks: bookData }},
+          { new: true }
         );
 
-        return book;
+        return user;
       }
       throw new AuthenticationError("You need to be logged in");
     },
@@ -68,7 +50,7 @@ const resolvers = {
       if (context.user) {
         return User.findByIdAndUpdate(
           { _id: context.user._id },
-          { $pull: { books: bookId } },
+          { $pull: { savedBooks: { bookId } } },
           { new: true }
         );
       }
