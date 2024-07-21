@@ -1,4 +1,4 @@
-const { User, Book } = require("../models");
+const { User } = require("../models");
 const { signToken, AuthenticationError } = require("../utils/auth");
 
 const resolvers = {
@@ -37,8 +37,8 @@ const resolvers = {
     saveBook: async (parent, { bookData }, context) => {
       if (context.user) {
         const user = await User.findByIdAndUpdate(
-           context.user._id ,
-          { $addToSet: { savedBooks: bookData }},
+          context.user._id,
+          { $addToSet: { savedBooks: bookData } },
           { new: true }
         );
 
