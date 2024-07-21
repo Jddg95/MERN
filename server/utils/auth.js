@@ -7,10 +7,10 @@ const expiration = "2h";
 
 module.exports = {
   // creating a new graphql error for authentication
-  AuthenticationError: new GraphQLError('Could not authenticate user.', {
+  AuthenticationError: new GraphQLError("Could not authenticate user.", {
     extensions: {
       // if cannot authenticate user return UNAUTHENTICATED code
-      code: 'UNAUTHENTICATED',
+      code: "UNAUTHENTICATED",
     },
   }),
 
@@ -25,23 +25,29 @@ module.exports = {
     }
 
     if (!token) {
+      console.log("No token provided"); // Debugging log
       return req;
     }
 
     // verify token and get user data out of it
     try {
       const { data } = jwt.verify(token, secret, { maxAge: expiration });
+      console.log("Token verified, user data:", data); // Debugging log
       req.user = data;
-    } catch {
-      console.log("Invalid token");
+    } catch (err) {
+      console.error("Invalid token", err); // Improved debugging log
     }
 
     // send to next endpoint
-return req;
+    return req;
   },
+
   signToken: function ({ username, email, _id }) {
     const payload = { username, email, _id };
-
-    return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
+    const token = jwt.sign({ data: payload }, secret, {
+      expiresIn: expiration,
+    });
+    console.log("Generated Token:", token); // Debugging log
+    return token;
   },
 };
