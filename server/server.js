@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const db = require("./config/connection");
@@ -26,7 +27,7 @@ const startApolloServer = async () => {
       context: authMiddleware,
     })
   );
-
+  console.log(process.env.NODE_ENV);
   if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, "../client/dist")));
 
